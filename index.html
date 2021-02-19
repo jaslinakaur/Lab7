@@ -150,6 +150,9 @@
         if (formAction == 'show') {
           var myform = document.forms.recordForm;
           myform.style.display = 'block';
+          // hide the ID box:
+          var idCnt = document.getElementById("recordIDcontainer");
+          idCnt.style.display = 'none';
         }
 
         // create a new record
