@@ -83,8 +83,25 @@
       // From the 4 CRUD actions, this is the READ action, and uses the GET http method.
       // The main difference from fetchOne() will be the URL you request from; check
       // the writeup to view the URL pattern for fetch one and fetch all
-      function fetchAll() {
-        // TODO
+      function fetchAll() {   
+        fetch('http://localhost:3000/posts')
+          .then(
+            function(response) {
+              if(response.status !== 200) {
+                document.getElementById('output').innerHTML = ("Network Error: " + response.status);
+                return;
+              }
+
+              response.json().then(function(data) {
+                var strElement = JSON.stringify(data);
+                document.getElementById('output').innerHTML = strElement;
+                console.log(data);
+              });
+            }
+          )
+          .catch(function(err) {
+            console.log('error fetching...', err);
+          });
       }
 
       // This function should fetch one entry from the given endpoint.
@@ -92,15 +109,74 @@
       // The main difference from fetchAll() will be the URL you request from; check
       // the writeup to view the URL pattern for fetch one and fetch all
       function fetchOne() {
-        // TODO
+        var id = window.prompt("Enter record id: ", '');
+        fetch('http://localhost:3000/posts/' + id)
+          .then(
+            function(response) {
+              if(response.status !== 200) {
+                document.getElementById('output').innerHTML = ("Network Error: " + response.status);
+                return;
+              }
+
+              response.json().then(function(data) {
+                var strElement = JSON.stringify(data);
+                document.getElementById('output').innerHTML = strElement;
+                console.log(data);
+              });
+            }
+          )
+          .catch(function(err) {
+            console.log('error fetching...', err);
+          });
       }
 
       // This function should use fetch to create one entry in the given endpoint.
       // From the 4 CRUD actions, this is the CREATE action, and uses the POST http method.
       // The main difference from updateRecord() will be the URL you send data to; check
       // the writeup to view the URL pattern for create and update
-      function createRecord() {
-        // TODO
+      function createRecord(formAction) {
+
+        // show the create-record form
+        if (formAction == 'show') {
+          var myform = document.forms.recordForm;
+          myform.style.display = 'block';
+        }
+
+        // create a new record
+        else {
+
+          var myAuthor = document.forms.recordForm.elements.author;
+          var myTitle = document.forms.recordForm.elements.title;
+        
+          var bodystr = JSON.stringify('{"title":"' + myTitle.value+ '" ,"author":"' + myAuthor.value + '"}');
+
+
+          fetch("http://localhost:3000/posts", {
+            method: 'post',
+            headers: { "Content-type": "application/json" },
+            body: bodystr
+          })
+          //.then(json)
+          .then(response => {
+            if(response.status == 200) {
+              return response.json();
+            }
+            else {
+              alert("this didn't work...");
+              console.log("Status: " + response.status);
+              return Promise.reject("server");
+            }
+          })
+          .then(function (data) {
+            var strElement = JSON.stringify(data);
+            document.getElementById('output').innerHTML = strElement;
+            console.log('Request succeeded with JSON response', data);
+          })
+          .catch(function (error) {
+            document.getElementById('output').innerHTML = ("Network Error: " + error);
+            console.log('Request failed', error);
+          });
+        }
       }
 
       // This function should use fetch to update one existing entry in the given endpoint.
@@ -117,7 +193,7 @@
       // request; check the writeup to view the URL pattern for get one and delete. THERE IS NO 
       // delete all, only delete one.
       function deleteRecord() {
-        // TODO
+        fetchOne();
       }
 
       window.addEventListener('DOMContentLoaded', () => {
