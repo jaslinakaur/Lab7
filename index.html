@@ -84,6 +84,11 @@
       // The main difference from fetchOne() will be the URL you request from; check
       // the writeup to view the URL pattern for fetch one and fetch all
       function fetchAll() {   
+        // hide the create form boxes
+        var myform = document.forms.recordForm;
+        myform.style.display = 'none';
+
+        // get
         fetch('http://localhost:3000/posts')
           .then(
             function(response) {
@@ -109,6 +114,11 @@
       // The main difference from fetchAll() will be the URL you request from; check
       // the writeup to view the URL pattern for fetch one and fetch all
       function fetchOne() {
+        // hide the create form boxes
+        var myform = document.forms.recordForm;
+        myform.style.display = 'none';
+
+        // get
         var id = window.prompt("Enter record id: ", '');
         fetch('http://localhost:3000/posts/' + id)
           .then(
@@ -147,35 +157,28 @@
 
           var myAuthor = document.forms.recordForm.elements.author;
           var myTitle = document.forms.recordForm.elements.title;
-        
-          var bodystr = JSON.stringify('{"title":"' + myTitle.value+ '" ,"author":"' + myAuthor.value + '"}');
-
-
+         
           fetch("http://localhost:3000/posts", {
-            method: 'post',
-            headers: { "Content-type": "application/json" },
-            body: bodystr
+              method: "post",
+              headers: { "Content-Type": "application/json" },
+              body: '{"title": "' + myTitle.value + '", "author": "' + myAuthor.value + '"}'
+            })
+          .then(resp => {
+              if ((resp.status === 200) || (resp.status === 201)) {
+                  return resp.json()
+              } else {
+                  document.getElementById('output').innerHTML = "Server Returned Status: " + resp.status;
+                  console.log("Status: " + resp.status)
+                  return Promise.reject("server")
+              }
           })
-          //.then(json)
-          .then(response => {
-            if(response.status == 200) {
-              return response.json();
-            }
-            else {
-              alert("this didn't work...");
-              console.log("Status: " + response.status);
-              return Promise.reject("server");
-            }
-          })
-          .then(function (data) {
-            var strElement = JSON.stringify(data);
-            document.getElementById('output').innerHTML = strElement;
-            console.log('Request succeeded with JSON response', data);
-          })
-          .catch(function (error) {
-            document.getElementById('output').innerHTML = ("Network Error: " + error);
-            console.log('Request failed', error);
-          });
+          .then(dataJson => {
+              document.getElementById('output').innerHTML = JSON.stringify(dataJson);
+           })
+          .catch(err => {
+              if (err === "server") return
+              console.log(err)
+           });
         }
       }
 
@@ -183,8 +186,44 @@
       // From the 4 CRUD actions, this is the UPDATE action, and uses the PUT http method.
       // The main difference from createRecord() will be the URL you send data to; check
       // the writeup to view the URL pattern for create and update
-      function updateRecord() {
-        // TODO
+      function updateRecord(formAction) {
+        /// show the create-record form
+        if (formAction == 'show') {
+          var myform = document.forms.recordForm;
+          myform.style.display = 'block';
+          var idCnt = document.getElementById("recordIDcontainer");
+          idCnt.style.display = 'block';
+        }
+
+        // create a new record
+        else {
+
+          var myAuthor = document.forms.recordForm.elements.author;
+          var myTitle = document.forms.recordForm.elements.title;
+          var myId = document.forms.recordForm.elements.recordID;
+         
+          fetch("http://localhost:3000/posts/" + myId.value, {
+              method: "put",
+              headers: { "Content-Type": "application/json" },
+              body: '{"title": "' + myTitle.value + '", "author": "' + myAuthor.value + '", "id": ' + myId.value + '}'
+            })
+          .then(resp => {
+              if ((resp.status === 200) || (resp.status === 201)) {
+                  return resp.json()
+              } else {
+                  document.getElementById('output').innerHTML = "Server Returned Status: " + resp.status;
+                  console.log("Status: " + resp.status)
+                  return Promise.reject("server")
+              }
+          })
+          .then(dataJson => {
+              document.getElementById('output').innerHTML = JSON.stringify(dataJson);
+           })
+          .catch(err => {
+              if (err === "server") return
+              console.log(err)
+           });
+        }
       }
 
       // This function should use fetch to delete one existing entry in the given endpoint.
@@ -193,7 +232,34 @@
       // request; check the writeup to view the URL pattern for get one and delete. THERE IS NO 
       // delete all, only delete one.
       function deleteRecord() {
-        fetchOne();
+        // hide the create form boxes
+        var myform = document.forms.recordForm;
+        myform.style.display = 'none';
+
+        // delete
+        var id = window.prompt("Enter record id: ", '');
+        fetch('http://localhost:3000/posts/' + id, {
+            method: 'delete',
+            headers: { "Content-type": "application/json" }
+          })
+          .then (
+            function(response) {
+              if(response.status !== 200) {
+                document.getElementById('output').innerHTML = ("Network Error: " + response.status);
+                return;
+              }
+
+              response.json().then(function(data) {
+                var strElement = JSON.stringify(data);
+                document.getElementById('output').innerHTML = strElement;
+                console.log(data);
+              });
+            }
+          )
+          .catch(function(err) {
+            console.log('error fetching...', err);
+          });
+        
       }
 
       window.addEventListener('DOMContentLoaded', () => {
